@@ -1,0 +1,20 @@
+SOJEN.AI PROPRIETARY MODEL LICENSE  
+Version 1.0 — © 2025 SoJen.AI, All Rights Reserved.
+
+These model files, including but not limited to model.safetensors, tokenizer files, 
+configuration files, and any associated documentation (“the Model”), are proprietary 
+intellectual property owned by SoJen.AI.
+
+The Model is part of a patent-pending system for bias detection, tone interpretation, 
+intent classification, and generative mitigation (the “SoJen.AI System”).  
+No rights are granted to copy, reproduce, modify, distribute, publish, or use the Model 
+outside of explicitly authorized applications provided by SoJen.AI.
+
+The Model may not be reverse engineered, extracted, analyzed, or used to train derivative 
+models. Access is granted solely for internal operation of authorized SoJen.AI-run 
+applications (e.g., the SoJen.AI API or demo dashboards).
+
+Unauthorized sharing, publication, redistribution, or commercial use is strictly prohibited.
+
+For licensing inquiries, contact:  
+Celia Banks, Founder — celia@sojen.ai

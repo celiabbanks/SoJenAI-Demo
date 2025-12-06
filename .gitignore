@@ -1,0 +1,37 @@
+# Python / env
+__pycache__/
+*.pyc
+.venv/
+env/
+venv/
+
+# HuggingFace / Transformer models (VERY large)
+*.safetensors
+*.bin
+*.pt
+*.pth
+models/
+checkpoints/
+runs/
+outputs/
+cache/
+huggingface/
+transformers_cache/
+
+# If your models live inside app/models/
+app/models/
+app/checkpoints/
+
+# Data / logs
+data/
+datasets/
+*.parquet
+*.log
+
+# System / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+.env
+*.env
