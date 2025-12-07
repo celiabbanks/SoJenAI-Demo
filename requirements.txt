@@ -11,7 +11,7 @@ transformers==4.45.2
 tokenizers==0.20.3
 safetensors==0.6.2
 
-torch==torch>=2.2.0,<3.0.0
+torch==torch
 torchaudio
 torchvision
 
