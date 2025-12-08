@@ -96,29 +96,43 @@ def health():
 # Main inference endpoint
 # ============================================================
 
-@app.post("/v1/infer", response_model=InferResponse)
-# main.py (or wherever your FastAPI app is)
-
 app = FastAPI()
 
 class InferRequest(BaseModel):
     texts: List[str]
 
 class InferResponse(BaseModel):
-    mitigations: List[str]  # adapt this to your real response schema
+    device: str
+    type_order: List[str]
+    results: List[Dict[str, Any]]
 
-def run_inference(texts: List[str]) -> List[str]:
-    # TODO: call your real SoJen.AI pipeline here
-    # This is just a stub:
-    return [f"[Mitigation for]: {t}" for t in texts]
+def run_inference(texts: List[str]) -> Dict[str, Any]:
+    device = "cpu"
+    type_order = ["political", "racial", "sexist", "classist", "ageism", "antisemitic", "bullying", "brand"]
+
+    results = []
+    for t in texts:
+        results.append({
+            "text": t,
+            "bias_type": "sexist",
+            "score": 0.9,
+            "mitigation": "Consider avoiding gender-based generalizations."
+        })
+
+    return {
+        "device": device,
+        "type_order": type_order,
+        "results": results,
+    }
 
 @app.post("/v1/infer", response_model=InferResponse)
 async def infer(req: InferRequest):
-    if not req.texts:
-        raise HTTPException(status_code=400, detail="No texts provided")
-
-    mitigations = run_inference(req.texts)
-    return {"mitigations": mitigations}
+    try:
+        output = run_inference(req.texts)
+        return output
+    except Exception as e:
+        print("Server error:", e)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # ============================================================
