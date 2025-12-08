@@ -19,8 +19,22 @@ from core.models import mitigate_text, model_debug_summary
 
 import torch
 
+
+# ============================================================
+# Device / config
+# ============================================================
+
 USE_GPU = True
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = "cuda" if USE_GPU and torch.cuda.is_available() else "cpu"
+
+# If your settings object tracks device, set it here so model_debug_summary
+# and other internals remain consistent with local behavior.
+try:
+    setattr(settings, "device", DEVICE)
+except Exception:
+    # If settings is not writable, just ignore
+    pass
+
 
 # ============================================================
 # FastAPI app
@@ -31,7 +45,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS: open for demo purposes
+# CORS: open for demo purposes (OK for capstone / VC demo)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -55,7 +69,7 @@ class InferRequest(BaseModel):
 class InferResponse(BaseModel):
     device: str
     type_order: List[str]
-    results: List[Dict[str, Any]]
+    results: List[Dict[str, Any]]  # we let results be a free-form list of dicts
 
 
 class MitigateRequest(BaseModel):
@@ -79,15 +93,17 @@ def root():
 def health():
     """
     Basic health check plus model debug info.
+    Mirrors your local behavior by calling model_debug_summary().
     """
     try:
         dbg = model_debug_summary()
         return {
             "status": "ok",
-            "device": getattr(settings, "device", "unknown"),
+            "device": getattr(settings, "device", DEVICE),
             "models": dbg,
         }
     except Exception as e:
+        print("ERROR in /health:", e)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -97,43 +113,36 @@ def health():
 
 def run_inference(texts: List[str]) -> Dict[str, Any]:
     """
-    Minimal stub implementation so the /v1/infer endpoint
-    returns a valid response for the dashboard demo.
+    Calls the real JenAI-Moderator inference pipeline via `predict(...)`.
 
-    TODO: Replace the body of this function with a call to your
-    real JenAI-Moderator pipeline via `predict(...)`.
+    IMPORTANT:
+      - This assumes `predict(texts)` returns a list of result dicts in the
+        same shape your local dashboard expects (scores, meta, severity, etc.).
+      - If your local code passes additional arguments (e.g. device, thresholds),
+        you should mirror that exact call here.
+
+    For example, if your local API uses:
+        results = predict(texts, device=DEVICE)
+    then replace the call below with that exact signature.
     """
-    device = DEVICE
-    type_order = TYPE_ORDER  # imported from predictor_smoke
+    try:
+        # ⬇️ If your local version uses extra args, adjust this line to match it.
+        results = predict(texts)
+        # Example if needed:
+        # results = predict(texts, device=DEVICE, use_gpu=USE_GPU)
 
-    results: List[Dict[str, Any]] = []
-    for t in texts:
-        mitigation = "Consider avoiding generalizations about any group. Focus on the specific behavior or situation instead."
-        results.append(
-            {
-                "text": t,
-                "bias_type": "sexist",
-                "overall_score": 0.9,
-                # Keep keys your UI might access:
-                "mitigation": mitigation,
-                "mitigation_text": mitigation,
-                # Optional placeholders for full pipeline fields:
-                "scores": {},
-                "scores_ordered": {},
-                "meta": {
-                    "severity_meta": {
-                        "top_label": "sexist",
-                        "implicit_explicit": 1,
-                    },
-                },
-                "severity": "high",
-                "top_label": "sexist",
-            }
-        )
+    except Exception as e:
+        print("ERROR in run_inference / predict():", e)
+        # Re-raise so /v1/infer can convert to HTTP 500
+        raise
 
+    # Pass through exactly what the Streamlit app expects:
+    # - device string
+    # - type_order from predictor_smoke.TYPE_ORDER
+    # - results list from your real model pipeline
     return {
-        "device": device,
-        "type_order": type_order,
+        "device": DEVICE,
+        "type_order": TYPE_ORDER,
         "results": results,
     }
 
@@ -146,6 +155,9 @@ async def infer(req: InferRequest):
     try:
         output = run_inference(req.texts)
         return output
+    except HTTPException:
+        # If run_inference already raised an HTTPException, just propagate it
+        raise
     except Exception as e:
         print("ERROR in /v1/infer:", e)
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -161,60 +173,18 @@ async def mitigate(req: MitigateRequest):
     Wraps core.models.mitigate_text so the dashboard can request
     mitigation/advisory for a single comment.
 
-    This version is hardened for the demo: if the real mitigate_text()
-    fails for any reason (missing models, timeout, etc.), we fall back
-    to a simple but meaningful advisory + rewrite so the UI still works.
+    We return whatever your local pipeline returns so that the
+    dashboard behavior (mode, severity, advisory, rewritten, meta)
+    matches your working local version.
     """
-    text = req.text
-
-    # First try the real mitigation pipeline
     try:
-        payload = mitigate_text(text)
-
-        # Ensure required keys exist so the dashboard doesn't break
-        mode = payload.get("mode", "rewrite")
-        severity = payload.get("severity", "medium")
-        advisory = payload.get("advisory") or "This message may be interpreted as biased or harsh. Consider softening the language and removing group-based generalizations."
-        rewritten = payload.get("rewritten") or "I’d like to talk about this situation more constructively and respectfully."
-
-        meta = payload.get("meta") or {}
-        if "top_label" not in meta and "top_label" in payload:
-            # Some implementations might put top_label at the top level
-            meta["top_label"] = payload.get("top_label")
-
-        safe_payload = {
-            "mode": mode,
-            "severity": severity,
-            "advisory": advisory,
-            "rewritten": rewritten,
-            "meta": meta,
-        }
-        return safe_payload
-
+        payload = mitigate_text(req.text)
+        return payload
+    except HTTPException:
+        raise
     except Exception as e:
-        # Fallback stub so the VC/mentor demo still shows behavior
-        print("ERROR in /v1/mitigate (fallback stub used):", e)
-
-        fallback_advisory = (
-            "This message may come across as biased or emotionally charged. "
-            "Consider focusing on specific behaviors or facts rather than "
-            "group-based language."
-        )
-        fallback_rewrite = (
-            "I’m concerned about how this situation is unfolding and would "
-            "like to discuss it in a more respectful and constructive way."
-        )
-
-        return {
-            "mode": "rewrite",
-            "severity": "medium",
-            "advisory": fallback_advisory,
-            "rewritten": fallback_rewrite,
-            "meta": {
-                "top_label": "bias",
-                "note": "Fallback mitigation stub used because core.models.mitigate_text failed."
-            },
-        }
+        print("ERROR in /v1/mitigate:", e)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # ============================================================
