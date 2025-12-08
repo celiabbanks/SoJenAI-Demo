@@ -96,20 +96,38 @@ def health():
 # ============================================================
 
 def run_inference(texts: List[str]) -> Dict[str, Any]:
+    """
+    Minimal stub implementation so the /v1/infer endpoint
+    returns a valid response for the dashboard demo.
+
+    TODO: Replace the body of this function with a call to your
+    real JenAI-Moderator pipeline via `predict(...)`.
+    """
     device = DEVICE
     type_order = TYPE_ORDER  # imported from predictor_smoke
 
     results: List[Dict[str, Any]] = []
     for t in texts:
-        mitigation = "Consider avoiding gender-based generalizations."
+        mitigation = "Consider avoiding generalizations about any group. Focus on the specific behavior or situation instead."
         results.append(
             {
                 "text": t,
                 "bias_type": "sexist",
                 "overall_score": 0.9,
-                # 👇 provide BOTH keys so whatever the UI expects will work
+                # Keep keys your UI might access:
                 "mitigation": mitigation,
                 "mitigation_text": mitigation,
+                # Optional placeholders for full pipeline fields:
+                "scores": {},
+                "scores_ordered": {},
+                "meta": {
+                    "severity_meta": {
+                        "top_label": "sexist",
+                        "implicit_explicit": 1,
+                    },
+                },
+                "severity": "high",
+                "top_label": "sexist",
             }
         )
 
@@ -142,12 +160,61 @@ async def mitigate(req: MitigateRequest):
     """
     Wraps core.models.mitigate_text so the dashboard can request
     mitigation/advisory for a single comment.
+
+    This version is hardened for the demo: if the real mitigate_text()
+    fails for any reason (missing models, timeout, etc.), we fall back
+    to a simple but meaningful advisory + rewrite so the UI still works.
     """
+    text = req.text
+
+    # First try the real mitigation pipeline
     try:
-        payload = mitigate_text(req.text)
-        return payload
+        payload = mitigate_text(text)
+
+        # Ensure required keys exist so the dashboard doesn't break
+        mode = payload.get("mode", "rewrite")
+        severity = payload.get("severity", "medium")
+        advisory = payload.get("advisory") or "This message may be interpreted as biased or harsh. Consider softening the language and removing group-based generalizations."
+        rewritten = payload.get("rewritten") or "I’d like to talk about this situation more constructively and respectfully."
+
+        meta = payload.get("meta") or {}
+        if "top_label" not in meta and "top_label" in payload:
+            # Some implementations might put top_label at the top level
+            meta["top_label"] = payload.get("top_label")
+
+        safe_payload = {
+            "mode": mode,
+            "severity": severity,
+            "advisory": advisory,
+            "rewritten": rewritten,
+            "meta": meta,
+        }
+        return safe_payload
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        # Fallback stub so the VC/mentor demo still shows behavior
+        print("ERROR in /v1/mitigate (fallback stub used):", e)
+
+        fallback_advisory = (
+            "This message may come across as biased or emotionally charged. "
+            "Consider focusing on specific behaviors or facts rather than "
+            "group-based language."
+        )
+        fallback_rewrite = (
+            "I’m concerned about how this situation is unfolding and would "
+            "like to discuss it in a more respectful and constructive way."
+        )
+
+        return {
+            "mode": "rewrite",
+            "severity": "medium",
+            "advisory": fallback_advisory,
+            "rewritten": fallback_rewrite,
+            "meta": {
+                "top_label": "bias",
+                "note": "Fallback mitigation stub used because core.models.mitigate_text failed."
+            },
+        }
 
 
 # ============================================================
