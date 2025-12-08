@@ -1,6 +1,5 @@
 # SoJenAI-Demo/app/main.py
 
-
 from __future__ import annotations
 
 from typing import List, Dict, Any
@@ -33,7 +32,7 @@ app = FastAPI(
 )
 
 # CORS: open for demo purposes
-app.add_middleware( 
+app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
@@ -96,28 +95,27 @@ def health():
 # Main inference endpoint
 # ============================================================
 
-app = FastAPI()
-
-class InferRequest(BaseModel):
-    texts: List[str]
-
-class InferResponse(BaseModel):
-    device: str
-    type_order: List[str]
-    results: List[Dict[str, Any]]
-
 def run_inference(texts: List[str]) -> Dict[str, Any]:
-    device = "cpu"
-    type_order = ["political", "racial", "sexist", "classist", "ageism", "antisemitic", "bullying", "brand"]
+    """
+    Minimal stub implementation so the /v1/infer endpoint
+    returns a valid response for the dashboard demo.
 
-    results = []
+    TODO: Replace the body of this function with a call to your
+    real JenAI-Moderator pipeline via `predict(...)`.
+    """
+    device = DEVICE
+    type_order = TYPE_ORDER  # imported from predictor_smoke
+
+    results: List[Dict[str, Any]] = []
     for t in texts:
-        results.append({
-            "text": t,
-            "bias_type": "sexist",
-            "score": 0.9,
-            "mitigation": "Consider avoiding gender-based generalizations."
-        })
+        results.append(
+            {
+                "text": t,
+                "bias_type": "sexist",
+                "overall_score": 0.9,
+                "mitigation": "Consider avoiding gender-based generalizations.",
+            }
+        )
 
     return {
         "device": device,
@@ -125,13 +123,17 @@ def run_inference(texts: List[str]) -> Dict[str, Any]:
         "results": results,
     }
 
+
 @app.post("/v1/infer", response_model=InferResponse)
 async def infer(req: InferRequest):
+    if not req.texts:
+        raise HTTPException(status_code=400, detail="No texts provided")
+
     try:
         output = run_inference(req.texts)
         return output
     except Exception as e:
-        print("Server error:", e)
+        print("ERROR in /v1/infer:", e)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
