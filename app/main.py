@@ -1,4 +1,4 @@
-# sojen_ai/app/main.py
+# SoJenAI-Demo/app/main.py
 
 
 from __future__ import annotations
