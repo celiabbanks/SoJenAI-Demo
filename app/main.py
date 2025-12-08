@@ -97,35 +97,28 @@ def health():
 # ============================================================
 
 @app.post("/v1/infer", response_model=InferResponse)
+# main.py (or wherever your FastAPI app is)
+
+app = FastAPI()
+
+class InferRequest(BaseModel):
+    texts: List[str]
+
+class InferResponse(BaseModel):
+    mitigations: List[str]  # adapt this to your real response schema
+
+def run_inference(texts: List[str]) -> List[str]:
+    # TODO: call your real SoJen.AI pipeline here
+    # This is just a stub:
+    return [f"[Mitigation for]: {t}" for t in texts]
+
+@app.post("/v1/infer", response_model=InferResponse)
 async def infer(req: InferRequest):
-    texts = req.texts
+    if not req.texts:
+        raise HTTPException(status_code=400, detail="No texts provided")
 
-    if not texts:
-        raise HTTPException(status_code=422, detail="texts must be non-empty")
-
-    if len(texts) > getattr(settings, "max_batch_size", 16):
-        raise HTTPException(
-            status_code=413,
-            detail=f"batch too large; max {getattr(settings, 'max_batch_size', 16)}",
-        )
-
-    max_len_allowed = getattr(settings, "max_text_len", 512)
-    for t in texts:
-        if len(t) > max_len_allowed:
-            raise HTTPException(
-                status_code=413,
-                detail=f"text too long; max {max_len_allowed}",
-            )
-
-    try:
-        results = predict(texts)
-        return {
-            "device": getattr(settings, "device", "unknown"),
-            "type_order": TYPE_ORDER,
-            "results": results,
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    mitigations = run_inference(req.texts)
+    return {"mitigations": mitigations}
 
 
 # ============================================================
