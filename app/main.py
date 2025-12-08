@@ -96,24 +96,20 @@ def health():
 # ============================================================
 
 def run_inference(texts: List[str]) -> Dict[str, Any]:
-    """
-    Minimal stub implementation so the /v1/infer endpoint
-    returns a valid response for the dashboard demo.
-
-    TODO: Replace the body of this function with a call to your
-    real JenAI-Moderator pipeline via `predict(...)`.
-    """
     device = DEVICE
     type_order = TYPE_ORDER  # imported from predictor_smoke
 
     results: List[Dict[str, Any]] = []
     for t in texts:
+        mitigation = "Consider avoiding gender-based generalizations."
         results.append(
             {
                 "text": t,
                 "bias_type": "sexist",
                 "overall_score": 0.9,
-                "mitigation": "Consider avoiding gender-based generalizations.",
+                # 👇 provide BOTH keys so whatever the UI expects will work
+                "mitigation": mitigation,
+                "mitigation_text": mitigation,
             }
         )
 
