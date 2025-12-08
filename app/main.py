@@ -1,4 +1,5 @@
 # SoJenAI-Demo/app/main.py
+# SoJenAI-Demo/app/main.py
 
 from __future__ import annotations
 
@@ -12,8 +13,7 @@ from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.inference import predict
-from app.predictor_smoke import router as smoke_router, TYPE_ORDER
+from app.predictor_smoke import router as smoke_router, TYPE_ORDER, predict as smoke_predict
 
 from core.models import mitigate_text, model_debug_summary
 
@@ -27,12 +27,10 @@ import torch
 USE_GPU = True
 DEVICE = "cuda" if USE_GPU and torch.cuda.is_available() else "cpu"
 
-# If your settings object tracks device, set it here so model_debug_summary
-# and other internals remain consistent with local behavior.
+# Try to keep settings.device in sync for /health and internals
 try:
     setattr(settings, "device", DEVICE)
 except Exception:
-    # If settings is not writable, just ignore
     pass
 
 
@@ -45,7 +43,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS: open for demo purposes (OK for capstone / VC demo)
+# CORS: open for demo / capstone purposes
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -59,17 +57,12 @@ app.include_router(smoke_router)
 
 
 # ============================================================
-# Pydantic models
+# Pydantic request models
+# (we do NOT constrain the response model here; we return dicts)
 # ============================================================
 
 class InferRequest(BaseModel):
     texts: List[str]
-
-
-class InferResponse(BaseModel):
-    device: str
-    type_order: List[str]
-    results: List[Dict[str, Any]]  # we let results be a free-form list of dicts
 
 
 class MitigateRequest(BaseModel):
@@ -77,7 +70,7 @@ class MitigateRequest(BaseModel):
 
 
 # ============================================================
-# Health & debug
+# Health & root
 # ============================================================
 
 @app.get("/")
@@ -108,55 +101,38 @@ def health():
 
 
 # ============================================================
-# Main inference endpoint
+# /v1/infer — main inference endpoint
 # ============================================================
 
-def run_inference(texts: List[str]) -> Dict[str, Any]:
+@app.post("/v1/infer")
+async def infer(req: InferRequest) -> Dict[str, Any]:
     """
-    Calls the real JenAI-Moderator inference pipeline via `predict(...)`.
+    Calls the canonical predictor from predictor_smoke.predict(),
+    which in turn uses app.inference (or inference) and normalizes
+    scores into scores_ordered following TYPE_ORDER.
 
-    IMPORTANT:
-      - This assumes `predict(texts)` returns a list of result dicts in the
-        same shape your local dashboard expects (scores, meta, severity, etc.).
-      - If your local code passes additional arguments (e.g. device, thresholds),
-        you should mirror that exact call here.
-
-    For example, if your local API uses:
-        results = predict(texts, device=DEVICE)
-    then replace the call below with that exact signature.
+    Returns the same structure that your local Streamlit app expects:
+      {
+        "device": "cuda" | "cpu",
+        "type_order": [...],
+        "results": [ { ... per-text result dict ... }, ... ]
+      }
     """
-    try:
-        # ⬇️ If your local version uses extra args, adjust this line to match it.
-        results = predict(texts)
-        # Example if needed:
-        # results = predict(texts, device=DEVICE, use_gpu=USE_GPU)
-
-    except Exception as e:
-        print("ERROR in run_inference / predict():", e)
-        # Re-raise so /v1/infer can convert to HTTP 500
-        raise
-
-    # Pass through exactly what the Streamlit app expects:
-    # - device string
-    # - type_order from predictor_smoke.TYPE_ORDER
-    # - results list from your real model pipeline
-    return {
-        "device": DEVICE,
-        "type_order": TYPE_ORDER,
-        "results": results,
-    }
-
-
-@app.post("/v1/infer", response_model=InferResponse)
-async def infer(req: InferRequest):
     if not req.texts:
         raise HTTPException(status_code=400, detail="No texts provided")
 
     try:
-        output = run_inference(req.texts)
-        return output
+        # Use the canonical wrapper so behavior matches /smoke and local
+        results = smoke_predict(req.texts)
+
+        payload: Dict[str, Any] = {
+            "device": DEVICE,
+            "type_order": TYPE_ORDER,
+            "results": results,
+        }
+        return payload
+
     except HTTPException:
-        # If run_inference already raised an HTTPException, just propagate it
         raise
     except Exception as e:
         print("ERROR in /v1/infer:", e)
@@ -164,21 +140,23 @@ async def infer(req: InferRequest):
 
 
 # ============================================================
-# Mitigation endpoint (used by dashboard Run/Rewrite)
+# /v1/mitigate — advisory / rewrite endpoint
 # ============================================================
 
 @app.post("/v1/mitigate")
-async def mitigate(req: MitigateRequest):
+async def mitigate(req: MitigateRequest) -> Dict[str, Any]:
     """
     Wraps core.models.mitigate_text so the dashboard can request
     mitigation/advisory for a single comment.
 
-    We return whatever your local pipeline returns so that the
-    dashboard behavior (mode, severity, advisory, rewritten, meta)
+    Returns whatever your local pipeline returns (mode, severity,
+    advisory, rewritten, meta, etc.) so the dashboard behavior
     matches your working local version.
     """
     try:
         payload = mitigate_text(req.text)
+        # We trust this to already be a serializable dict in the shape your
+        # local Streamlit app is coded against.
         return payload
     except HTTPException:
         raise
