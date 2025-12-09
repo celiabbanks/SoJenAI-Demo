@@ -19,6 +19,8 @@ from core.models import mitigate_text, model_debug_summary
 
 import torch
 
+import traceback
+
 
 # ============================================================
 # Device / config
@@ -135,8 +137,18 @@ async def infer(req: InferRequest) -> Dict[str, Any]:
     except HTTPException:
         raise
     except Exception as e:
+        tb = traceback.format_exc()
         print("ERROR in /v1/infer:", e)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        print(tb)
+        # Return the error + traceback so we can see it from your laptop
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": str(e),
+                "traceback": tb,
+            },
+        )
+
 
 
 # ============================================================
