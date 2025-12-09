@@ -127,8 +127,11 @@ def health():
 # /v1/infer — main inference endpoint
 # ============================================================
 
-@app.post("/v1/infer")
-async def infer(req: InferRequest) -> Dict[str, Any]:
+@app.post("/v1/infer", response_model=InferResponse, dependencies=[Depends(require_api_key)])
+async def infer(req: InferRequest):
+
+# @app.post("/v1/infer")
+# async def infer(req: InferRequest) -> Dict[str, Any]:
     """
     Calls the canonical predictor from predictor_smoke.predict(),
     which in turn uses app.inference (or inference) and normalizes
