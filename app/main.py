@@ -59,6 +59,27 @@ app.include_router(smoke_router)
 
 
 # ============================================================
+# Secure website access to FastAPI app via Railway
+# ============================================================
+
+
+import os
+from fastapi import Depends, Header, HTTPException
+
+def require_api_key(x_api_key: str = Header(None)):
+    """
+    Validates the caller has the correct API key.
+    """
+    expected = os.getenv("SOJEN_API_KEY")
+    if expected is None:
+        # If API key not configured, allow all (for debugging).
+        return
+
+    if x_api_key != expected:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+
+# ============================================================
 # Pydantic request models
 # (we do NOT constrain the response model here; we return dicts)
 # ============================================================
