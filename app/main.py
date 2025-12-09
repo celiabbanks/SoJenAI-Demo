@@ -8,7 +8,7 @@ from typing import List, Dict, Any
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, Header
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 
@@ -17,6 +17,7 @@ from app.predictor_smoke import router as smoke_router, TYPE_ORDER, predict as s
 
 from core.models import mitigate_text, model_debug_summary
 
+import os
 import torch
 
 import traceback
@@ -62,9 +63,6 @@ app.include_router(smoke_router)
 # Secure website access to FastAPI app via Railway
 # ============================================================
 
-
-import os
-from fastapi import Depends, Header, HTTPException
 
 def require_api_key(x_api_key: str = Header(None)):
     """
