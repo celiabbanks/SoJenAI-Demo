@@ -85,6 +85,10 @@ def require_api_key(x_api_key: str = Header(None)):
 class InferRequest(BaseModel):
     texts: List[str]
 
+class InferResponse(BaseModel):
+    device: str
+    type_order: List[str]
+    results: List[Dict[str, Any]]
 
 class MitigateRequest(BaseModel):
     text: str
