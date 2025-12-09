@@ -179,8 +179,11 @@ async def infer(req: InferRequest):
 # /v1/mitigate — advisory / rewrite endpoint
 # ============================================================
 
-@app.post("/v1/mitigate")
-async def mitigate(req: MitigateRequest) -> Dict[str, Any]:
+@app.post("/v1/mitigate", dependencies=[Depends(require_api_key)])
+async def mitigate(req: MitigateRequest):
+
+# @app.post("/v1/mitigate")
+# async def mitigate(req: MitigateRequest) -> Dict[str, Any]:
     """
     Wraps core.models.mitigate_text so the dashboard can request
     mitigation/advisory for a single comment.
