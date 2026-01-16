@@ -23,7 +23,7 @@ HEALTH_ENDPOINT = f"{API_BASE}/health"
 INFER_ENDPOINT = f"{API_BASE}/v1/infer"
 MITIGATE_ENDPOINT = f"{API_BASE}/v1/mitigate"
 
-LOGO_FILENAME = "JenAI-Moderator_CommIntell.png"
+LOGO_FILENAME = "SoJenAI-Moderator_CommIntell.png"
 
 
 # -----------------------------
@@ -32,7 +32,7 @@ LOGO_FILENAME = "JenAI-Moderator_CommIntell.png"
 
 def load_logo():
     """
-    Load the JenAI-Moderator logo from assets/images/
+    Load the SoJenAI-Moderator logo from assets/images/
     relative to the project root.
     """
     dashboard_dir = Path(__file__).resolve().parent
@@ -105,7 +105,7 @@ with st.sidebar:
     if logo is not None:
         st.image(
             logo,
-            caption="JenAI-Moderator • Communication Intelligence",
+            caption="SoJenAI-Moderator • Communication Intelligence",
             use_container_width=True,
         )
 
@@ -113,9 +113,9 @@ with st.sidebar:
     st.markdown(
         """
 **Creator:** Celia Banks  
-**Project:** SoJen.AI — JenAI-Moderator  
+**Project:** SoJen.AI — SoJenAI-Moderator  
 
-JenAI-Moderator provides *Communication Intelligence* for:
+SoJenAI-Moderator provides *Communication Intelligence* for:
 - Bias detection across multiple categories
 - Severity assessment (none/low/medium/high)
 - Advisory or rewrite responses
@@ -189,8 +189,8 @@ JenAI-Moderator provides *Communication Intelligence* for:
 # -----------------------------
 # Main title + Performance mode
 # -----------------------------
-# st.title("SoJen.AI — JenAI-Moderator")
-st.markdown("<h1>SoJen.AI™ — JenAI-Moderator™</h1>", unsafe_allow_html=True)
+# st.title("SoJen.AI — SoJenAI-Moderator")
+st.markdown("<h1>SoJen.AI™ — SoJenAI-Moderator</h1>", unsafe_allow_html=True)
 st.subheader("Communication Intelligence for Bias Detection & Rewrite")
 
 # Voice-enabled badge
@@ -206,7 +206,7 @@ st.markdown(
         font-size:12px;
         font-weight:600;
     ">
-        JenAI-Moderator voice enabled
+        SoJenAI-Moderator voice enabled
     </div>
     """,
     unsafe_allow_html=True,
@@ -263,12 +263,12 @@ st.markdown("""
 
 This dashboard previews the engine that powers **SoJen.AI** — a system designed to interpret **tone**, **intent**, 
 and **emotional context** in digital communication.  
-Through our AI persona, **JenAI-Moderator**, the engine provides real-time, emotionally intelligent guidance that helps 
+Through our AI persona, **SoJenAI-Moderator**, the engine provides real-time, emotionally intelligent guidance that helps 
 users communicate more clearly and calmly.
 
 This demo represents **Layer 1** of the SoJen.AI offering: a commercial communication intelligence API.
 
-**Layer 2 — the SoJen social platform — is protected under a U.S. patent application and is not shown here.**  
+**Layer 2 — the SoJen.AI social platform — is protected under a U.S. patent application and is not shown here.**  
 The full platform extends this engine into a wellness-centered digital environment built for calmer, safer communication.
 
 Use this demo to explore how the engine understands messages, detects escalation, and generates constructive alternatives in real time.
@@ -282,7 +282,7 @@ st.markdown("""
 
 Welcome to the **SoJen.AI demonstration dashboard**.  
 This demo highlights how our communication intelligence engine interprets **tone**, **intent**, and **emotional context** 
-in real time and provides supportive guidance through our AI persona, **JenAI-Moderator**.
+in real time and provides supportive guidance through our AI persona, **SoJenAI-Moderator**.
 
 1. **Enter any message** into the input text box below — workplace note, student message, customer interaction, or social post. Just replace the default comment text.
 2. Comment examples to test the different bias categories:
@@ -298,8 +298,8 @@ in real time and provides supportive guidance through our AI persona, **JenAI-Mo
    - **Tone and intent classification**
    - **Emotional context inference**
    - **Bias or escalation indicators** (when present)
-4. Inside the results expander, click **Run Rewrite** to get a **JenAI-Moderator response** — a clearer, calmer, or more constructive version of your message.
-5. When a rewrite or advisory appears, click **▶️ Play JenAI-Moderator voice** to **hear** the response spoken in a professional tone.
+4. Inside the results expander, click **Run Rewrite** to get a **SoJenAI-Moderator response** — a clearer, calmer, or more constructive version of your message.
+5. When a rewrite or advisory appears, click **▶️ Play SoJenAI-Moderator voice** to **hear** the response spoken in a professional tone.
 6. Try different tones — **neutral, frustrated, confused, overwhelmed, dismissive, emotional** — and see how the system responds.
 7. All processing is done via the SoJen.AI **ML + Generative AI engine**, which powers both our commercial API and our 
    **patent-pending social platform**.
@@ -324,7 +324,7 @@ text_single = st.text_area(
 texts: List[str] = [text_single] if text_single.strip() else []
 
 run_button = st.button(
-    "Analyze with JenAI-Moderator",
+    "Analyze with SoJenAI-Moderator",
     type="primary",
     use_container_width=True,
 )
@@ -432,7 +432,7 @@ if results:
             # JenAI-Moderator Rewrite + Audio
             # -----------------------------
             st.markdown("---")
-            st.markdown("#### JenAI-Moderator Rewrite")
+            st.markdown("#### SoJenAI-Moderator Rewrite")
 
             rewrite_col1, rewrite_col2 = st.columns([1, 3])
 
@@ -440,7 +440,7 @@ if results:
                 if logo is not None:
                     st.image(logo, width=120)
                 else:
-                    st.markdown("**JenAI-Moderator**")
+                    st.markdown("**SoJenAI-Moderator**")
 
             with rewrite_col2:
                 st.write(
@@ -500,7 +500,7 @@ if results:
                                     background-color:#eef3ff;
                                     border-left:4px solid #4a6cff;
                                 ">
-                                    <strong>JenAI-Moderator</strong><br>
+                                    <strong>SoJenAI-Moderator</strong><br>
                                     <em>Communication Intelligence Response</em>
                                 </div>
                                 """,
@@ -508,7 +508,7 @@ if results:
                             )
 
                             # Explanation
-                            st.markdown("**JenAI-Moderator explanation:**")
+                            st.markdown("**SoJenAI-Moderator explanation:**")
                             if advisory:
                                 st.markdown(advisory)
                             else:
@@ -518,7 +518,7 @@ if results:
 
                             # Suggested rewrite
                             if rewritten:
-                                st.markdown("**JenAI-Moderator suggested rewrite:**")
+                                st.markdown("**SoJenAI-Moderator suggested rewrite:**")
                                 st.code(rewritten)
                                 st.caption(
                                     "You can copy this suggested rewrite into your product, "
@@ -528,20 +528,20 @@ if results:
                                 )
                             else:
                                 st.caption(
-                                    "For this message, JenAI-Moderator is providing advisory "
+                                    "For this message, SoJenAI-Moderator is providing advisory "
                                     "feedback only. You can draft your own alternative phrasing "
                                     "based on the explanation above."
                                 )
 
                             # --------------------------------
-                            # JenAI-Moderator voice: inline audio
+                            # SoJenAI-Moderator voice: inline audio
                             # --------------------------------
                             spoken_text = rewritten or advisory  # Prefer rewrite; fallback to advisory
 
                             if spoken_text:
-                                st.markdown("##### Hear JenAI-Moderator")
+                                st.markdown("##### Hear SoJenAI-Moderator")
                                 try:
-                                    st.caption("Generating JenAI-Moderator audio…")
+                                    st.caption("Generating SoJenAI-Moderator audio…")
 
                                     tts = gTTS(text=spoken_text, lang="en", slow=False)
                                     audio_bytes = io.BytesIO()
@@ -554,7 +554,7 @@ if results:
                             # Mode explanation
                             if mode == "advisory":
                                 st.markdown(
-                                    "_JenAI-Moderator is in **advisory mode** for "
+                                    "_SoJenAI-Moderator is in **advisory mode** for "
                                     "this message due to its assessed severity toward "
                                     "a protected group. The response explains why the "
                                     "content may be harmful and suggests a different way to "
@@ -562,13 +562,13 @@ if results:
                                 )
                             elif mode == "rewrite":
                                 st.markdown(
-                                    "_JenAI-Moderator is in **rewrite mode**, providing "
+                                    "_SoJenAI-Moderator is in **rewrite mode**, providing "
                                     "a clearer and less harmful version of the message "
                                     "while preserving intent._"
                                 )
                             else:  # mode == "none"
                                 st.markdown(
-                                    f"_JenAI-Moderator has **not proposed a rewrite** at this severity level "
+                                    f"_SoJenAI-Moderator has **not proposed a rewrite** at this severity level "
                                     f"(`severity = {m_severity}`). The model signal is too low to justify "
                                     "an automatic bias mitigation rewrite._"
                                 )
@@ -581,11 +581,11 @@ st.markdown("""
 ## **What This Demo Does *Not* Show**
 
 This demonstration focuses solely on the SoJen.AI communication intelligence engine.  
-It does **not** represent the full design or functionality of the patent-pending SoJen social platform.
+It does **not** represent the full design or functionality of the patent-pending SoJen.AI social platform.
 
 Specifically, this demo does **not** include:
 
-- The SoJen platform UI, community structure, or interaction flows  
+- The SoJen.AI platform UI, community structure, or interaction flows  
 - Age segmentation, onboarding, or wellness-based design logic  
 - Internal ML training data, feature extraction, or model architecture  
 - Multi-user safety layers or moderation pathways  
