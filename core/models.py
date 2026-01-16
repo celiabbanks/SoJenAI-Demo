@@ -762,7 +762,7 @@ def mitigate_text(text: str) -> Dict[str, Any]:
             "mode": "none",
             "rewritten": None,
             "advisory": (
-                "JenAI-Moderator did not detect sufficient risk in this message "
+                "SoJenAI-Moderator did not detect sufficient risk in this message "
                 "to justify a rewrite. No mitigation is applied."
             ),
             "scores": scores,
@@ -779,7 +779,7 @@ def mitigate_text(text: str) -> Dict[str, Any]:
             "mode": "advisory",
             "rewritten": None,
             "advisory": (
-                "JenAI-Moderator sees a weak bias or tone risk. You may want to soften "
+                "SoJenAI-Moderator sees a weak bias or tone risk. You may want to soften "
                 "the language or add context, but an automatic rewrite is not required "
                 "at this level."
             ),
@@ -844,7 +844,7 @@ def mitigate_text(text: str) -> Dict[str, Any]:
 
     # Build a more detailed advisory that teaches the user
     base_msg = (
-        "JenAI-Moderator has detected a strong bias or stereotype in this message. "
+        "SoJenAI-Moderator has detected a strong bias or stereotype in this message. "
         "Statements that generalize an entire group (for example, by gender, race, "
         "age, or other identity) can reinforce harmful stereotypes and create an unsafe environment."
     )
